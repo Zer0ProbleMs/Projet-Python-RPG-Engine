@@ -81,6 +81,48 @@ def calculer_statistiques_equipe(matrice_stats, vecteur_poids):
     return score_global
 
 
+# Partie 5 : Géométrie du plan, Hitbox et Aires (TP6)
+
+# La fonction va créer un vecteur entre 2 points de la carte
+def vecteur_deplacement(A, B):
+    return (B[0] - A[0], B[1] - A[1])
+
+# Ici la fonction calcule la distance de manière euclidienne entre deux entitées
+def distance_positions(A, B):
+    v = vecteur_deplacement(A, B)
+    return math.sqrt(v[0] ** 2 + v[1] ** 2)
+
+# La fonction va calculer l'aire d'une zone de sort
+def aire_zone_effet(A, B, C):
+    u = vecteur_deplacement(A, B)
+    v = vecteur_deplacement(A, C)
+    return abs(u[0] * v[1] - u[1] * v[0]) / 2.0
+
+# Le code suivant vérifie si un point se trouve dans la hitbox d'un boss
+def point_dans_hitbox_polygone(P, polygone):
+    """
+    Algorithme de Ray Casting (TP6) pour vérifier si un point (ex: projectile)
+    se trouve dans la hitbox complexe d'un boss.
+    """
+    x, y = P
+    n = len(polygone)
+    interieur = False
+
+    p1x, p1y = polygone[0]
+    for i in range(n + 1):
+        p2x, p2y = polygone[i % n]
+        if y > min(p1y, p2y):
+            if y <= max(p1y, p2y):
+                if x <= max(p1x, p2x):
+                    if p1y != p2y:
+                        xinters = (y - p1y) * (p2x - p1x) / (p2y - p1y) + p1x
+                    if p1x == p2x or x <= xinters:
+                        interieur = not interieur
+        p1x, p1y = p2x, p2y
+
+    return interieur
+
+
 # L'endroit ou la magie démarre
 
 if __name__ == "__main__":
@@ -128,4 +170,25 @@ if __name__ == "__main__":
     poids_meta = [0.5, 0.3, 0.2]  # Importance relative des stats
     scores_puissance = calculer_statistiques_equipe(stats_joueurs, poids_meta)
     print(f"[TP4] Scores de puissance globale des joueurs (NumPy) : {scores_puissance}")
+
+    # 5. Test TP6 (Géométrie du plan & Hitbox)
+    pos_joueur = (2.0, 3.0)
+    pos_boss = (5.0, 7.0)
+    dist = distance_positions(pos_joueur, pos_boss)
+    print(f"[TP6] Distance joueur-boss : {dist:.2f} mètres")
+
+    # Aire d'un sort de zone (triangle)
+    A, B, C = (0.0, 0.0), (4.0, 0.0), (2.0, 5.0)
+    aire_sort = aire_zone_effet(A, B, C)
+    print(f"[TP6] Aire de la zone d'effet du sort : {aire_sort}")
+
+    # Test Hitbox polygone (Boss)
+    hitbox_boss = [(0.0, 0.0), (6.0, 0.0), (6.0, 6.0), (0.0, 6.0)]
+    projectile = (3.0, 3.0)
+    touche = point_dans_hitbox_polygone(projectile, hitbox_boss)
+    print(f"[TP6] Le projectile en {projectile} touche le boss ? -> {touche}")
+
+    fin_chrono = time.time()
+    print(f"[Performance] Exécution globale terminée en {(fin_chrono - debut_chrono): .6f} secondes.")
+    print("Si ce message s'affiche, alors c'est la fin de l'exécution !")
 # boo
